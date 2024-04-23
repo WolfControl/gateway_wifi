@@ -33,17 +33,20 @@ jobs:
           sed -i 's/char \*firmwareVersionWifi = "[0-9.]*"/char \*firmwareVersionWifi = "${{ steps.create_version.outputs.version }}"/' src/main.h
 
       - name: Setup git and Commit changes
+        id: commit_changes
         run: |
           git config --global credential.helper store
           echo https://${{ secrets.JRHEMMEN_TOKEN }}:x-oauth-basic@github.com > ~/.git-credentials
-
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-
           git add src/main.h
-          git commit -m "Update firmware version to ${{ steps.create_version.outputs.version }}"
-          
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          git diff-index --quiet HEAD || git commit -m "Update firmware version to ${{ steps.create_version.outputs.version }}"
+          if [ $? -eq 0 ]; then
+            echo "::set-output name=commit_made::true"
+            git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          else
+            echo "::set-output name=commit_made::false"
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
@@ -51,7 +54,7 @@ jobs:
         run: pio run
 
       - name: Revert Commit if Build Fails
-        if: failure()
+        if: ${{ steps.commit_changes.outputs.commit_made == 'true' && failure() }}
         run: |
           git revert HEAD --no-edit
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
