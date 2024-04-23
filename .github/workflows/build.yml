@@ -42,7 +42,8 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add src/main.h
-          git diff-index --quiet HEAD || git commit -m "Update firmware version to ${{ steps.create_version.outputs.version }}"
+          MESSAGE="${{ github.event.head_commit.message }}"
+          git diff-index --quiet HEAD || git commit -m "Firmware update: ${MESSAGE}, version ${{ steps.create_version.outputs.version }}"
           if [ $? -eq 0 ]; then
             echo "::set-output name=commit_made::true"
             git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
