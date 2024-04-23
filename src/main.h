@@ -51,17 +51,6 @@ uint32_t mqtt_port = 1883;
 
 int s_retry_num = 0;
 
-const gpio_num_t powerLED = GPIO_NUM_NC;
-const gpio_num_t adoptedLED = GPIO_NUM_NC;
-const gpio_num_t bridgeConnectedLED = GPIO_NUM_NC;
-
-const gpio_num_t wifiConnectedLED = GPIO_NUM_NC;
-const gpio_num_t mqttConnectedLED = GPIO_NUM_NC;
-
-const gpio_num_t espnowActivityLED = GPIO_NUM_NC;
-const gpio_num_t serialActivityLED = GPIO_NUM_NC;
-const gpio_num_t mqttActivityLED = GPIO_NUM_NC;
-
 char *firmwareVersionWifi = "0.0.1";
 char *firmwareVersionEspNow;
 char *espnowmac;
