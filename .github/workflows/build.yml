@@ -29,6 +29,7 @@ jobs:
           major_pattern: "(MAJOR)"
           minor_pattern: "(MINOR)"
           version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: true
 
       - name: Update Firmware Version in Header File
         run: |
