@@ -1,0 +1,70 @@
+name: Firmware Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Determine version
+        id: create_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: 'v'
+          enable_prerelease_mode: true
+
+      - name: Update Firmware Version in Header File
+        run: |
+          sed -i 's/char \*firmwareVersionWifi = "[0-9.]*"/char \*firmwareVersionWifi = "${{ steps.create_version.outputs.version }}"/' src/main.h
+
+      - name: Setup git and Commit changes
+        run: |
+          git config --global credential.helper store
+          echo https://${{ secrets.JRHEMMEN_TOKEN }}:x-oauth-basic@github.com > ~/.git-credentials
+
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add src/main.h
+          git commit -m "Update firmware version to ${{ steps.create_version.outputs.version }}"
+          
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Build PlatformIO Project
+        run: pio run
+
+      - name: Revert Commit if Build Fails
+        if: failure()
+        run: |
+          git revert HEAD --no-edit
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .pio/build/mqtt-gateway-devkit/firmware.bin
+          tag_name: ${{ steps.create_version.outputs.version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
