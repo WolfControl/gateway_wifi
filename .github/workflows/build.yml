@@ -26,7 +26,9 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           tag_prefix: 'v'
-          enable_prerelease_mode: true
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          version_format: "${major}.${minor}.${patch}"
 
       - name: Update Firmware Version in Header File
         run: |
