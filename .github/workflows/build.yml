@@ -1,0 +1,78 @@
+name: Build and Release Firmware
+
+on:
+  repository_dispatch:
+    types: [firmware-build]
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Determine version
+        id: create_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: 'v'
+          major_pattern: "(MAJOR)"
+          minor_pattern: "(MINOR)"
+          version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: "(PATCH)"
+          enable_prerelease_mode: true
+          debug: true
+
+      - name: Update Firmware Version in Header File
+        run: |
+          sed -i 's/char \*firmwareVersionWifi = "[0-9.]*"/char \*firmwareVersionWifi = "${{ steps.create_version.outputs.version }}"/' src/main.h
+
+      - name: Setup git and Commit changes
+        id: commit_changes
+        run: |
+          git config --global credential.helper store
+          echo https://${{ secrets.CICD_KEY }}:x-oauth-basic@github.com > ~/.git-credentials
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/main.h
+          git diff-index --quiet HEAD || git commit -m "Firmware updated to version ${{ steps.create_version.outputs.version }}"
+          if [ $? -eq 0 ]; then
+            echo "::set-output name=commit_made::true"
+            git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          else
+            echo "::set-output name=commit_made::false"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Build PlatformIO Project
+        run: pio run
+
+      - name: Revert Commit if Build Fails
+        if: ${{ steps.commit_changes.outputs.commit_made == 'true' && failure() }}
+        run: |
+          git revert HEAD --no-edit
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .pio/build/wifi-gateway-devkit-prod/firmware.bin
+          tag_name: ${{ steps.create_version.outputs.version }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

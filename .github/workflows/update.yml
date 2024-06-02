@@ -1,0 +1,72 @@
+name: Update Internal Dependencies
+
+on:
+  repository_dispatch:
+    types: [library-release]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get the name of the updated library
+        run: echo "library=${{ github.event.client_payload.library }}" >> $GITHUB_ENV
+
+      - name: Get the new library version from the client payload
+        run: echo "new_version=$(echo ${{ github.event.client_payload.version }} | sed 's/^v//')" >> $GITHUB_ENV
+
+      - name: Get the current library version from platformio.ini
+        run: |
+          current_version=$(grep "${{ env.library }}" platformio.ini | grep -oP '\d+\.\d+\.\d+')
+          echo "current_version=$current_version" >> $GITHUB_ENV
+
+      - name: Compare versions to determine update type
+        run: |
+          if [[ "$new_version" != "$current_version" ]]; then
+            IFS='.' read -ra NEW <<< "$new_version"
+            IFS='.' read -ra CUR <<< "$current_version"
+            if [[ "${NEW[0]}" -gt "${CUR[0]}" ]]; then
+              echo "update_type=MAJOR" >> $GITHUB_ENV
+            elif [[ "${NEW[1]}" -gt "${CUR[1]}" ]]; then
+              echo "update_type=MINOR" >> $GITHUB_ENV
+            elif [[ "${NEW[2]}" -gt "${CUR[2]}" ]]; then
+              echo "update_type=PATCH" >> $GITHUB_ENV
+            else
+              echo "update_type=NO_CHANGE" >> $GITHUB_ENV
+            fi
+          else
+            echo "update_type=NO_CHANGE" >> $GITHUB_ENV
+          fi
+
+      - name: Update the library version in platformio.ini
+        run: |
+          sed -i "s|\(${{ env.library }}.git#v\)[^ ]*|\1$new_version|" platformio.ini
+  
+      - name: Debugging - display the updated platformio.ini
+        run: cat platformio.ini
+
+      - name: Commit the changes to the repository
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git add platformio.ini
+          if [ "$update_type" == "NO_CHANGE" ]; then
+            echo "No version change detected or no update required."
+            exit 0
+          fi
+          git commit -m "($update_type) update $library to v $new_version"
+          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dispatch release workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CICD_KEY }}
+          repository: WolfControl/gateway_wifi
+          event-type: 'firmware-build'
+
