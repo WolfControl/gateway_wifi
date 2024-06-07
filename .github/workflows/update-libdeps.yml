@@ -2,7 +2,7 @@ name: Update Internal Dependencies
 
 on:
   repository_dispatch:
-    types: [library-release]
+    types: [esp-library-release]
 
 jobs:
   update:
@@ -68,5 +68,5 @@ jobs:
         with:
           token: ${{ secrets.CICD_KEY }}
           repository: WolfControl/gateway_wifi
-          event-type: 'firmware-build'
+          event-type: 'build-release'
 

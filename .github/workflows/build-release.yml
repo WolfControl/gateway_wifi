@@ -2,7 +2,7 @@ name: Build and Release Firmware
 
 on:
   repository_dispatch:
-    types: [firmware-build]
+    types: [build-release]
   
 jobs:
   build:
