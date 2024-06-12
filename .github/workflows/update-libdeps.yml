@@ -46,9 +46,6 @@ jobs:
         run: |
           sed -i "s|\(${{ env.library }}.git#v\)[^ ]*|\1$new_version|" platformio.ini
   
-      - name: Debugging - display the updated platformio.ini
-        run: cat platformio.ini
-
       - name: Commit the changes to the repository
         run: |
           git config --global user.email "action@github.com"
@@ -62,11 +59,3 @@ jobs:
           git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Dispatch release workflow
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.CICD_KEY }}
-          repository: WolfControl/gateway_wifi
-          event-type: 'build-release'
-
