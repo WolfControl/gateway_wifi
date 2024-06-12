@@ -30,9 +30,7 @@ jobs:
           minor_pattern: "(MINOR)"
           version_format: "${major}.${minor}.${patch}"
           bump_each_commit: true
-          bump_each_commit_patch_pattern: "(PATCH)"
           enable_prerelease_mode: true
-          debug: true
 
       - name: Update Firmware Version in Header File
         run: |
