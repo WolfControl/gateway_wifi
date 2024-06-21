@@ -54,7 +54,7 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@v2
         with:
-          files: .pio/build/wifi-gateway-devkit-prod/firmware.bin
+          files: .pio/build/wifi-gateway-prod/firmware.bin
           tag_name: v${{ steps.create_version.outputs.version }}
           draft: false
           prerelease: false
