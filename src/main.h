@@ -38,7 +38,7 @@ int s_retry_num = 0;
 char *firmwareVersionWifi = "SETDURINGCOMPILATION";
 char *firmwareVersionEspNow;
 char *espnowmac;
-char *espwifimac;
+char *wifimac;
 
 // ---------- led.h ---------- //
 
