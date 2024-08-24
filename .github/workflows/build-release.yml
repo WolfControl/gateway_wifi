@@ -18,9 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5.1.1
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
