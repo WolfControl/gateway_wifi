@@ -5,6 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
+      - '.github/**'
       - '**/sdkconfig.wifi-gateway-dev'
       - '**/sdkconfig.wifi-gateway-dev.old'
   workflow_run:
