@@ -5,14 +5,12 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'sdkconfig.wifi-gateway-dev'
-      - 'sdkconfig.wifi-gateway-dev.old'
+      - '**/sdkconfig.wifi-gateway-dev'
+      - '**/sdkconfig.wifi-gateway-dev.old'
   workflow_run:
     workflows: ["Update Internal Dependencies"]
     types:
       - completed
-
-# ignore changes to sdkconfig.wifi-gateway-dev
   
 jobs:
   build:
