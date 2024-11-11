@@ -20,9 +20,6 @@ EventGroupHandle_t s_mqtt_event_group;
 EventGroupHandle_t adoption_event_group;
 EventGroupHandle_t bridge_event_group;
 
-TaskHandle_t otaListenerTaskHandle;
-QueueHandle_t otaQueue;
-
 SemaphoreHandle_t mutex;
 
 TimerHandle_t heartbeatTimer;
