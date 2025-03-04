@@ -19,6 +19,7 @@ EventGroupHandle_t s_wifi_event_group;
 EventGroupHandle_t s_mqtt_event_group;
 EventGroupHandle_t adoption_event_group;
 EventGroupHandle_t bridge_event_group;
+EventGroupHandle_t ota_event_group;
 
 SemaphoreHandle_t mutex;
 
