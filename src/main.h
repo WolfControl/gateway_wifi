@@ -37,7 +37,7 @@ uint32_t mqtt_port = 1883;
 
 int s_retry_num = 0;
 
-char *firmwareVersionWifi = "SETDURINGCOMPILATION";
+char *firmwareVersionWifi = "0.0.0";
 char *firmwareVersionEspNow;
 char *espnowmac;
 char *wifimac;
