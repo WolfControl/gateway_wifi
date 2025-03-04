@@ -24,6 +24,7 @@ SemaphoreHandle_t mutex;
 
 TimerHandle_t heartbeatTimer;
 
+TaskHandle_t otaTaskHandle;
 char *deviceId;
 char *adoptionStatus;
 
